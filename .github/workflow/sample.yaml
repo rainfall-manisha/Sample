@@ -32,7 +32,7 @@ jobs:
         description: "Requirement description"
         annotations: ["error::undecorated"]
         release: 2023.1.2
-        priority: abc
+        priority: xyz
         suggested_by: economy1
         complexity_points: 78
         uncertainity_points: jp
