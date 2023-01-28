@@ -1,0 +1,160 @@
+name: Requirements Validator
+
+on:
+  push:
+    branches:
+      - main
+      - workflows-test
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Test changed-files
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files in the requirements folder
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v35
+        with:
+          files: .artifacts/.requirements/*.yaml
+
+      - name: Run step if any file(s) in the requirements folder change
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        run: |
+          echo "One or more files in the docs folder has changed."
+          echo "List all the files that have changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
+      - name: Run requirements-yaml action
+        id: yaml-data
+        uses: CumulusDS/get-yaml-paths-action@v1.0.1
+        with:
+          file: ${{ steps.changed-files-specific.outputs.all_changed_files }}
+          title: title
+          description: description
+          name: name
+          priority: priority
+          release: release
+          complexity_points: complexity_points
+          uncertainity_points: uncertainity_points
+          approved_by: approved_by
+          suggested_by: suggested_by
+          
+      - name: Validate yaml
+        id: validate-yaml
+        run: |
+          echo ${{ steps.yaml-data.outputs }}
+          echo ${{ steps.yaml-data.outputs.title }}
+          echo ${{ steps.yaml-data.outputs.name }}
+          echo ${{ steps.yaml-data.outputs.complexity_points }}
+          echo ${{ steps.yaml-data.outputs.uncertainity_points }}
+          echo ${{ steps.yaml-data.outputs.priority }}
+          echo ${{ steps.yaml-data.outputs.approved_by }}
+          echo ${{ steps.yaml-data.outputs.suggested_by }}
+          echo ${{ steps.yaml-data.outputs.release }}
+          has_errors=false
+          yaml_error_message=""
+          var="$(echo ${string1})\n$(echo "string2")\n$(echo "string3")"
+          # Validate Name
+          flag=false
+          for i in ${{ steps.yaml-data.outputs.name }} 
+          do
+              if [[ $i =~ ^[[:lower:]] ]]; then flag=true
+              fi
+          done
+          if $flag
+          then
+              has_errors=true
+              echo "Name is not title case"
+              yaml_error_message="$(echo ${yaml_error_message})\n$(echo "Name is not title case")"
+          fi
+          
+          # Validate release
+          release=${{ steps.yaml-data.outputs.release }}
+          valid_releases=("2023.1.0")
+          if ! [[ $release =~ ^[0-9]{4}\.[0-9]\.[0-9]$ ]] || ! [[ "${valid_releases[@]}" =~ "${release}" ]];
+          then
+              has_errors=true
+              echo "Invalid release version"
+              yaml_error_message="$(echo ${yaml_error_message})\n$(echo "Invalid release version")"
+          fi
+          # Validate complexity points
+          complexity_points=${{ steps.yaml-data.outputs.complexity_points }}
+          if ! [[ $complexity_points =~ ^-?[0-9]+$ ]] || [[ $complexity_points -le 0 ]] || [[ $complexity_points -ge 11 ]]; then
+              has_errors=true
+              echo "Invalid complexity points"
+              yaml_error_message="$(echo ${yaml_error_message})\n$(echo "Invalid complexity points")"
+          fi
+          
+          # Validate uncertainity points
+          uncertainity_points=${{ steps.yaml-data.outputs.uncertainity_points }}
+          if ! [[ $uncertainity_points =~ ^-?[0-9]+$ ]] || [[ $uncertainity_points -le 0 ]] || [[ $uncertainity_points -ge 11 ]]; then
+              has_errors=true
+              echo "Invalid uncertainity points"
+              yaml_error_message="$(echo ${yaml_error_message})\n$(echo "Invalid uncertainity points")"
+          fi
+          
+          # Validate priority values
+          priority=${{ steps.yaml-data.outputs.priority }}
+          valid_priority_values=("low" "high" "medium" "critical")
+          if ! [[ $priority == *[[:lower:]]* ]] || ! [[ "${valid_priority_values[@]}" =~ "${priority}" ]];
+          then
+              has_errors=true
+              echo "Priority is not in lowercase or is not in allowed values"
+              yaml_error_message="$(echo ${yaml_error_message})\n$(echo "Priority is not in lowercase or is not in allowed values")"
+          fi
+          
+          # Validate approved by email regex
+          approved_by=${{ steps.yaml-data.outputs.approved_by }}
+          if ! [[ $approved_by =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$ ]]; then
+              has_errors=true
+              echo "Approved by is not a valid email address."
+              yaml_error_message="$(echo ${yaml_error_message})\n$(echo "Approved by is not a valid email address")"
+          fi
+          
+          # Validate suggested by
+          suggested_by=${{ steps.yaml-data.outputs.suggested_by }}
+          allowed_values=("Business" "Iconomy" "Program")
+          if ! [[ $suggested_by == *[[:upper:]]* ]] || ! [[ "${allowed_values[@]}" =~ "${suggested_by}" ]];
+          then
+              has_errors=true
+              echo "Suggested by is not in uppercase or is not in allowed values"
+              yaml_error_message="$(echo ${yaml_error_message})\n$(echo "Suggested by is not in uppercase or is not in allowed values")"
+          fi
+          
+          if $has_errors
+          then
+              echo $yaml_error_message
+          fi
+         
+          echo "{has_errors}={${has_errors}}"
+          echo "{yaml_error_message}={${yaml_error_message}}"
+          echo "has_errors=${has_errors}" >> $GITHUB_OUTPUT
+          echo "yaml_error_message=${yaml_error_message}" >> $GITHUB_OUTPUT
+      - name: Create issue for requirement parsing
+        if: steps.validate-yaml.outputs.has_errors == 'true'
+        env:
+          ORGANIZATION: rainfall-one
+          GH_TOKEN: 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
+        run: |
+          title="Issue with requirement"
+          body="${{ steps.validate-yaml.outputs.yaml_error_message }}"
+          
+          gh api graphql -F title="${title}" -F body="${body}" -F repository_id=${{ github.event.repository.node_id }} -F assignee=${{ github.event.sender.node_id }} -f query='
+            mutation($title: String!, $body: String, $repository_id: ID!, $assignee: ID!) {
+              createIssue(input: {
+                body: $body,
+                title: $title,
+                repositoryId: $repository_id,
+                assigneeIds: [$assignee]
+              }) {
+                issue {
+                  id
+                  title
+                }
+              }
+            }'
