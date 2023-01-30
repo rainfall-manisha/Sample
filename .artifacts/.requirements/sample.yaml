@@ -1,4 +1,4 @@
-name: Requirement Alphanumeric Name
+name: Requirement Alphanumeric name
 title: "Requirement Title"
 description: "Requirement description"
 annotations: ["error::undecorated"]
