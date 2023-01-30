@@ -29,6 +29,7 @@ jobs:
         run: |
           echo "One or more files in the docs folder has changed."
           echo "List all the files that have changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
+          
       - name: Run requirements-yaml action
         id: yaml-data
         uses: CumulusDS/get-yaml-paths-action@v1.0.1
@@ -56,9 +57,11 @@ jobs:
           echo ${{ steps.yaml-data.outputs.approved_by }}
           echo ${{ steps.yaml-data.outputs.suggested_by }}
           echo ${{ steps.yaml-data.outputs.release }}
+          
           has_errors=false
           yaml_error_message=""
           var="$(echo ${string1})\n$(echo "string2")\n$(echo "string3")"
+          
           # Validate Name
           flag=false
           for i in ${{ steps.yaml-data.outputs.name }} 
@@ -135,10 +138,11 @@ jobs:
           echo "{yaml_error_message}={${yaml_error_message}}"
           echo "has_errors=${has_errors}" >> $GITHUB_OUTPUT
           echo "yaml_error_message=${yaml_error_message}" >> $GITHUB_OUTPUT
+          
       - name: Create issue for requirement parsing
         if: steps.validate-yaml.outputs.has_errors == 'true'
         env:
-          ORGANIZATION: rainfall-one
+          ORGANIZATION: My bash script
           GH_TOKEN: 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
         run: |
           title="Issue with requirement"
