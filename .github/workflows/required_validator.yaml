@@ -139,7 +139,7 @@ jobs:
         if: steps.validate-yaml.outputs.has_errors == 'true'
         env:
           ORGANIZATION: rainfall-one
-          GH_TOKEN: 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
+          GH_TOKEN: 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
         run: |
           title="Issue with requirement"
           body="${{ steps.validate-yaml.outputs.yaml_error_message }}"
