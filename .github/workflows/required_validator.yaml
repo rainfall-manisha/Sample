@@ -143,7 +143,7 @@ jobs:
         if: steps.validate-yaml.outputs.has_errors == 'true'
         env:
           ORGANIZATION: My bash script
-          GH_TOKEN: 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
+          GH_TOKEN: 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
         run: |
           title="Issue with requirement"
           body="${{ steps.validate-yaml.outputs.yaml_error_message }}"
