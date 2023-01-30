@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+# name: CI
 
 # Controls when the workflow will run
 on:
@@ -26,11 +26,22 @@ jobs:
       - uses: actions/checkout@v3
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script
+     # - name: Run a one-line script
         run: echo Hello, world!
+        name: Requirement Alphanumeric name
+        title: "Requirement title"
+        description: "Requirement description"
+        annotations: ["error::undecorated"]
+        release: 2023.1.2
+        priority: abc
+        suggested_by: economy1
+        complexity_points: 78
+        uncertainity_points: jp
+        assignees: Business
+        approved_by: shoyeb@rainfallone
 
       # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+     # - name: Run a multi-line script
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
