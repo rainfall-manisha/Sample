@@ -1,5 +1,5 @@
 name: Requirement Alphanumeric Name
-title: "Requirement title"
+title: "Requirement Title"
 description: "Requirement description"
 annotations: ["error::undecorated"]
 release: 2023.1.2
