@@ -137,9 +137,9 @@ jobs:
           echo "yaml_error_message=${yaml_error_message}" >> $GITHUB_OUTPUT
       - name: Create issue for requirement parsing
         if: steps.validate-yaml.outputs.has_errors == 'true'
-        env:
-          ORGANIZATION: rainfall-one
-          GH_TOKEN: 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
+       # env:
+       #   ORGANIZATION: rainfall-one
+       #   GH_TOKEN: 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
         run: |
           title="Issue with requirement"
           body="${{ steps.validate-yaml.outputs.yaml_error_message }}"
