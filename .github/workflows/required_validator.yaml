@@ -142,8 +142,8 @@ jobs:
       - name: Create issue for requirement parsing
         if: steps.validate-yaml.outputs.has_errors == 'true'
         env:
-          ORGANIZATION: My bash script
-          GH_TOKEN: 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
+          ORGANIZATION: rainfall-one
+          GH_TOKEN:  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 
         run: |
           title="Issue with requirement"
           body="${{ steps.validate-yaml.outputs.yaml_error_message }}"
